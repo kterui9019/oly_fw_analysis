@@ -189,6 +189,14 @@ contents, and inactive or natively activated timeouts. Each runs all four channe
 transitions. Property, status, parameter and timer services have explicit models;
 viewer and draw completion remain modeled. Hardware behavior is unverified.
 
+The HSL Delete regression runs the common native dispatcher with all 13 HSL
+children, three COLOR profiles, each axis, and both loaded and unloaded tone
+sections. It checks that the fallback receives the original event pointer and
+stack position, then executes through the axis change to the native viewer
+entry. The viewer call and physical display are outside this fixture. Separate
+dispatch checks cover RGB channel cycling and consuming Delete on Grain without
+changing its selection or settings.
+
 The RGB native probes cover all36 profile/channel/page states, explicit async
 requests, held reset, guarded trash dispatch, equal-neutral redraw, all45
 four-word owner snapshots, all nine native banks and default reset, real

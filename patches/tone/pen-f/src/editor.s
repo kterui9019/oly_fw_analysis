@@ -710,11 +710,11 @@ tone_dispatch:
  beq tone_dispatch_tone
  jmp hsl_dispatch
 tone_dispatch_tone:
- add -4,sp
- mov a0,(sp)
+ add -8,sp
+ mov a0,(4,sp)
  call tone_cycle,[d2,d3,a2,a3],40
- mov (sp),a0
- add 4,sp
+ mov (4,sp),a0
+ add 8,sp
  cmp 0,d0
  bne tone_dispatch_done
  jmp hsl_dispatch
