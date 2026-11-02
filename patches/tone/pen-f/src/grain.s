@@ -5,6 +5,28 @@ grain_rows:
  .zero 180
 
 .section .text,"ax"
+.macro diagnostic_save
+ movm [d2,d3,a2,a3,other],(sp)
+ mov psw,d2
+ add -4,sp
+ mov d2,(4,sp)
+ mov (48,sp),d2
+.endm
+.macro diagnostic_restore
+ mov (4,sp),d2
+ add 4,sp
+ mov d2,psw
+ movm (sp),[d2,d3,a2,a3,other]
+.endm
+.macro diagnostic_word register, value, offset
+ diagnostic_save
+ cmp \value,\register
+ bne 991f
+ mov 1,d3
+ movbu d3,(grain_diagnostic_uncached+\offset)
+991:
+ diagnostic_restore
+.endm
 .global grain_decode,grain_select,grain_queue,grain_job_unloaded,grain_combiner
 grain_decode:
  mov d0,d1
@@ -26,6 +48,7 @@ grain_select:
  movbu d0,(5733,a0)
  cmp 0,d0
  beq grain_select_color
+ diagnostic_word d0,3,2
  jmp grain_native_604c5c46
 grain_select_color:
  mov 11,d1
@@ -58,6 +81,14 @@ grain_queue_request:
  bcc grain_queue_stock
  mov 12,d2
  movhu d2,(10,a2)
+ diagnostic_save
+ movbu (1088,a2),d3
+ cmp 3,d3
+ bne 1f
+ mov 1,d3
+ movbu d3,(grain_diagnostic_uncached+3)
+1:
+ diagnostic_restore
 grain_queue_stock:
  jmp grain_native_604c2f1d
 
@@ -72,6 +103,19 @@ grain_combiner:
  add -1,d0
  cmp 3,d0
  bcc grain_combiner_color
+ diagnostic_save
+ cmp 2,d0
+ bne 1f
+ movhu (12,a0),d3
+ cmp 0x901,d3
+ beq 2f
+ cmp 0x902,d3
+ bne 1f
+2:
+ mov 1,d3
+ movbu d3,(grain_diagnostic_uncached+4)
+1:
+ diagnostic_restore
  jmp grain_native_604fb918
 grain_combiner_color:
  mov 11,d0
@@ -103,6 +147,7 @@ grain_acquire_store:
  lsr 2,d1
  mov grain_rows_uncached,a0
  mov d0,(d1,a0)
+ diagnostic_word d0,0xf7524e03,0
  mov a2,a0
  mov d2,d0
  add 4,sp
@@ -122,6 +167,7 @@ grain_job_invalid:
  clr d0
 grain_job_store:
  mov d0,(40,a2)
+ diagnostic_word d0,0xf7524e03,1
  ret [],4
 
 grain_clear:

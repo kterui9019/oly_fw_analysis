@@ -15,6 +15,8 @@ from penf_tone_endpoints import TOOLCHAIN
 from penf_tone_integration_probe import SOURCES
 from penf_tone_probe import sha
 
+GRAIN_DIAGNOSTIC = 0x601cafdb
+
 HSL = ROOT / 'patches/hsl/pen-f'
 TOOLS = {name: TOOLCHAIN / path for name, path in (
     ('assembler','gas/as-new'),('linker','ld/ld-new'),('objcopy','binutils/objcopy'),
@@ -134,7 +136,7 @@ tone_rows_uncached = tone_rows + 0x40000000;
 tone_compact_rows = tone_rows_uncached + 640;
 grain_source_uncached = grain_source + 0x40000000;
 grain_rows_uncached = grain_rows + 0x40000000;
-'''.replace('0x6115b060', hex(late_start)) + f'hl_owner_row = {old["hl_owner_row"]:#x};\nhl_return = {old["hl_no_owner"] + 2:#x};\n')
+'''.replace('0x6115b060', hex(late_start)) + f'hl_owner_row = {old["hl_owner_row"]:#x};\nhl_return = {old["hl_no_owner"] + 2:#x};\ngrain_diagnostic = {GRAIN_DIAGNOSTIC:#x};\ngrain_diagnostic_uncached = grain_diagnostic + 0x40000000;\n')
     elf = assemble(out / 'tone', [*SOURCES, ROOT / 'patches/tone/pen-f/src/transport.s', ROOT / 'patches/tone/pen-f/src/rgb.s', ROOT / 'patches/tone/pen-f/src/grain.s'], layout)
     current = symbols(elf)
     image, manifest = bytearray(reference), []

@@ -317,6 +317,21 @@ grain_footer_level_copy:
  add 2,a2
  bra grain_footer_level_copy
 grain_footer_info:
+ mov 32,d0
+ movhu d0,(a2)
+ mov 68,d0
+ movhu d0,(2,a2)
+ add 4,a2
+ mov grain_diagnostic_uncached,a0
+ mov 5,d1
+grain_footer_diagnostic:
+ movbu (a0),d0
+ add 48,d0
+ movhu d0,(a2)
+ add 1,a0
+ add 2,a2
+ add -1,d1
+ bne grain_footer_diagnostic
  mov grain_info,a0
  jmp tone_footer_icon_copy
 .section .tone_footer_tables,"ax"

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import json
 import struct
 from penf_emulator import BASE, ROOT, firmware
-from penf_tone_candidate import HSL, assemble, extract, symbols
+from penf_tone_candidate import GRAIN_DIAGNOSTIC, HSL, assemble, extract, symbols
 from penf_tone_probe import sha
 
 
@@ -70,7 +70,7 @@ def build_editor(folder, candidate):
              'tone_resident': (0x60c87670,0x60c877e2),
              'tone_pair_ids': (0x60c877e2,0x60c877f0),
              'tone_page': (0x60427fd8,0x60427fe8),
-             'tone_dispatch_gate': (0x601cafc0,0x601cafe0),
+             'tone_dispatch_gate': (0x601cafc0,GRAIN_DIAGNOSTIC),
              'tone_manager_gate': (0x60a4ff8d,0x60a4ffa6),
              'tone_manager_unavailable': (0x6081b8af,0x6081b8cf),
              'tone_manager_unavailable_extra': (names['grain_resident_end'],0x6069b800)}
@@ -79,7 +79,14 @@ def build_editor(folder, candidate):
     elf = assemble(folder / 'assembly', [tone_source], layout)
     names.update(symbols(elf))
     chunks = {}
+    assert image[GRAIN_DIAGNOSTIC-2-BASE:GRAIN_DIAGNOSTIC+5-BASE] == b'\xff' * 7
+    assert names['grain_diagnostic_uncached'] == GRAIN_DIAGNOSTIC + 0x40000000
+    image[GRAIN_DIAGNOSTIC-BASE:GRAIN_DIAGNOSTIC+5-BASE] = bytes(5)
+    chunks['grain_diagnostic'] = bytes(5)
+    slots['grain_diagnostic'] = (GRAIN_DIAGNOSTIC, GRAIN_DIAGNOSTIC+5)
     for section, (address, end) in slots.items():
+        if section == 'grain_diagnostic':
+            continue
         data = extract(elf, section)
         chunks[section] = data
         assert address + len(data) <= end, (section, len(data), end-address)

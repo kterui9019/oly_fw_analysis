@@ -103,15 +103,16 @@ its stock restore container. Producing these files performs no device access.
 |---|---|
 | Required full stock | `77398610b379f80238117f31a6d5bbf65d608b49ec563666c64d84367e969f2c` |
 | Pinned HSL package | `4f9a36e6742728ded3d9b443915355f1d1eea0371e1da673f322de970994f717` |
-| COLOR grain + HSL Delete fix main | `b415cea09c5eb88a09a70736c7c65d82c6c01bc7497881375a95d9dce685edf3` |
-| COLOR grain + HSL Delete fix container,44433408 bytes | `31ed97a1e9643f29f8f3ae4cfb58631e889236be9d3a82f127710b090f9908ae` |
+| Historical pre-diagnostic COLOR grain + HSL Delete fix main | `b415cea09c5eb88a09a70736c7c65d82c6c01bc7497881375a95d9dce685edf3` |
+| Historical pre-diagnostic COLOR grain + HSL Delete fix container, 44433408 bytes | `31ed97a1e9643f29f8f3ae4cfb58631e889236be9d3a82f127710b090f9908ae` |
 | Retained HSL OSD | `f713df2a2d7d57a511e55cabb0f84ac4d612f99c58df4502a89b32bd8580084c` |
 
-The candidate is `generated/grain-hsl-delete-fix/install/DCOLYMP/E1229999.BIN`.
-Its main and container hashes are recorded in `build.json`. This build changes
-only four decoded firmware bytes from the first COLOR grain candidate to fix
-HSL Delete dispatch. The report that grain is invisible in live view and saved
-JPEG remains unresolved; see [the investigation](../../../docs/color/pen-f/GRAIN_VISIBILITY_INVESTIGATION.md).
+The current build is a temporary diagnostic. Its main and container hashes are
+recorded in its `build.json`. The historical pre-diagnostic build changed four
+decoded firmware bytes from the first COLOR grain candidate to fix HSL Delete
+dispatch. The report that COLOR grain is invisible in saved JPEG remains
+unresolved; see [the investigation](../../../docs/color/pen-f/GRAIN_VISIBILITY_INVESTIGATION.md)
+and [the diagnostic procedure](../../../docs/color/pen-f/GRAIN_DIAGNOSTIC.md).
 
 ## Verification and limits
 

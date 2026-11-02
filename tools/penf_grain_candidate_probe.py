@@ -81,6 +81,7 @@ class GrainJobs(JobProbe):
         self.graph = graph
         s = self.s
         s.regions = [replace(r, data=graph.image) if r.name == 'main' else r for r in s.regions]
+        s.ram('grain_diagnostic', graph.symbols['grain_diagnostic'], bytes(5))
         s.ram('loaded_sections', 0x61c58404, bytes([0xa4 if loaded else 4]))
         s.write(JOB + 14960, struct.pack('<I', TAG | level))
         native_return = s.return_from_model
@@ -102,6 +103,7 @@ class GrainJobs(JobProbe):
 def engine_controls(graph, request):
     mode, stage = request['picture_mode'], int(request['stage'], 16)
     s, _ = engine_fixture(0x604fb7b8, 0x20, 8, mode, stage, image=graph.image)
+    s.ram('grain_diagnostic', graph.symbols['grain_diagnostic'], bytes(5))
     packet = bytes.fromhex(request['request_hex'])
     s.write(Q, packet + bytes(1132 - len(packet)))
     s.ram('loaded_sections', 0x61c58404, b'\xa4')
@@ -237,6 +239,7 @@ def unavailable_cases(graph):
     for mode_value, level in product((11, 12), (0, 3)):
         p = GrainJobs(graph, mode=mode_value, level=level, loaded=False)
         p.s.regions = without_ranges(p.s.regions, [(0x6115b014, 0x6115c800), (0xa115b014, 0xa115c800)])
+        p.s.regions = [r for r in p.s.regions if not r.name.startswith('grain_diagnostic')]
         result = p.all_jobs()
         baseline = baseline_jobs(mode=mode_value, grain=level)
         assert [r['request_hex'] for r in result['requests']] == [r['request_hex'] for r in baseline['requests']]
@@ -361,7 +364,7 @@ def viewer_cases(graph):
         viewer.guards()
         payload = s.read(0x619b5f80, 92)
         label = payload[18:].decode('utf-16le').split('\0')[0]
-        assert label == f'Grain {labels[level]} @A028@', label
+        assert label == f'Grain {labels[level]} D00000 @A028@', label
         assert payload[5] == 1
         press(viewer)
         assert struct.unpack('<H', s.read(ACTUATOR+194, 2))[0] == 12

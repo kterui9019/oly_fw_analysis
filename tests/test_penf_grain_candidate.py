@@ -5,6 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'tools'))
 import penf_grain_candidate_probe as grain
+import penf_grain_diagnostic_probe as diagnostic
 from penf_tone_graph_candidate import build_graph
 
 
@@ -41,6 +42,9 @@ class FilmGrainTests(unittest.TestCase):
 
     def test_native_viewer_grain_footer_and_delete(self):
         grain.viewer_cases(self.graph)
+
+    def test_all_diagnostic_footer_patterns_and_levels(self):
+        diagnostic.footers(self.graph)
 
     def test_custom_color_edits_skip_mask_and_reach_both_image_stages(self):
         grain.color_processing_cases(self.graph)

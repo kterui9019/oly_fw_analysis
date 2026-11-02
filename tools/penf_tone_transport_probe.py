@@ -68,6 +68,8 @@ def setup(candidate, *, reference=False, loaded=True, processing=False, raw=(0, 
         s.ram('job', JOB - 32, GUARD + b'\xa7' * 14964 + GUARD, aliases=False)
     image = candidate.reference if reference else candidate.image
     s.regions = [replace(r, data=image) if r.name == 'main' else r for r in s.regions]
+    if 'grain_diagnostic' in candidate.symbols:
+        s.ram('grain_diagnostic', candidate.symbols['grain_diagnostic'], bytes(5))
     s.ram('loaded_sections', 0x61c58404, struct.pack('<I', 0x84 if loaded else 4))
     s.ram('hl_source', candidate.symbols['hl_profile_source'], HL_PACKED)
     s.ram('tone_source', candidate.symbols['tone_source'], source_bytes(SOURCE_WORDS) + bytes(12))

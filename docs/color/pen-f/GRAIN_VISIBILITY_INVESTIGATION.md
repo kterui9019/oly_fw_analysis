@@ -46,5 +46,16 @@ offset 812 in that fixture. This does not cover nonneutral tint or real capture.
 
 The CPU tests cannot determine whether the camera acquires the expected grain
 word, takes these processing paths, or produces a usable brightness mask.
-Comparison with stock MONO grain on the same camera can narrow the next step.
-No strength, mode, or flag change is justified by the observations above.
+The user has since confirmed that native MONO grain is visible on the same
+camera. The [official PEN-F Japanese manual](https://download.omsystem.com/pages/inst/penf/manual_penf_JPN.pdf#page=66)
+states on page 66 that the native grain effect is not reflected in live view.
+That statement concerns native MONO and does not establish the expected live
+view behavior of this COLOR implementation.
+
+A further native context, owner, and engine execution through `604aa595`
+used format `0x0105` in both modes. With explicit synthetic seed and service
+allocation models, the 16,384-byte mask configuration and 164-byte grain ICM
+configuration were equal, with gain 600. Actual camera requests, processing,
+and JPEG pixels remain unknown. No strength, mode, or flag change is justified
+by these observations. The temporary [diagnostic](GRAIN_DIAGNOSTIC.md) observes
+the existing algorithm without changing it.
