@@ -61,3 +61,10 @@ The [processing-job map](CREATIVE_PROCESSING_JOBS.md) identifies these buffer
 relationships. Stock grain Off sets zero gain in the tested list; it does not
 remove all MONO intermediate jobs. This concerns creative MONO profiles, not the
 separate Grainy Film ART filters.
+
+## COLOR candidate
+
+The [COLOR grain candidate](COLOR_GRAIN.md) adds independent per-profile strength,
+a native editor page, acquired settings, and mask/image request routing over the
+HSL and RGB tone firmware. Its native CPU checks do not establish physical
+JPEG appearance or hardware memory capacity.

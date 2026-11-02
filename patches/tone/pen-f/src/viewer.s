@@ -107,7 +107,8 @@ tone_footer:
  cmp 0,d0
  beq tone_footer_reject
  movhu (194,a2),d3
- cmp 11,d3
+ cmp 12,d3
+ beq grain_footer
  bls tone_footer_ready
 tone_footer_reject:
  add 24,sp
@@ -277,3 +278,56 @@ tone_label_all: .short 65,76,76,32,0
 tone_label_r: .short 82,32,0
 tone_label_g: .short 71,32,0
 tone_label_b: .short 66,32,0
+
+.section .tone_footer,"ax"
+grain_footer:
+ call grain_current,[],4
+ mov d0,d2
+ cmp 0,d0
+ beq grain_footer_modified
+ mov 1,d0
+grain_footer_modified:
+ movbu d0,(3,a3)
+ mov 1,d0
+ movbu d0,(5,a3)
+ mov 5,d0
+ movhu d0,(10,a3)
+ mov grain_label,a0
+ mov a3,a2
+ add 18,a2
+grain_footer_copy:
+ movhu (a0),d0
+ cmp 0,d0
+ beq grain_footer_level
+ movhu d0,(a2)
+ add 2,a0
+ add 2,a2
+ bra grain_footer_copy
+grain_footer_level:
+ mov d2,d0
+ asl 2,d0
+ mov grain_labels,a0
+ mov (d0,a0),a0
+grain_footer_level_copy:
+ movhu (a0),d0
+ cmp 0,d0
+ beq grain_footer_info
+ movhu d0,(a2)
+ add 2,a0
+ add 2,a2
+ bra grain_footer_level_copy
+grain_footer_info:
+ mov grain_info,a0
+ jmp tone_footer_icon_copy
+.section .tone_footer_tables,"ax"
+.balign 4
+grain_labels:
+ .long grain_off,grain_low,grain_medium,grain_high
+.section .tone_footer_strings,"ax"
+.balign 2
+grain_label: .short 71,114,97,105,110,32,0
+grain_off: .short 79,102,102,0
+grain_low: .short 76,111,119,0
+grain_medium: .short 77,101,100,105,117,109,0
+grain_high: .short 72,105,103,104,0
+grain_info: .short 32,64,65,48,50,56,64,0

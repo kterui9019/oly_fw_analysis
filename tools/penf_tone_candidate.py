@@ -95,15 +95,28 @@ def build_candidate(out, *, expanded=False, stock_main=None):
     layout.write_text('''SECTIONS {
 .tone_early 0x60427e78 : { *(.tone_early) }
 .tone_source 0x60427c30 : { *(.tone_source) }
-.tone_storage_ids 0x60427fc0 : { *(.tone_storage_ids) }
+.grain_primary_gate 0x60427fc0 : { *(.grain_primary_gate) }
+.tone_storage_ids 0x601caa10 : { *(.tone_storage_ids) }
 .tone_rgb_gate 0x60427fe8 : { *(.tone_rgb_gate) }
-.tone_rgb_stock 0x60427c60 : { *(.tone_rgb_stock) }
+.tone_rgb_stock 0x601caa04 : { *(.tone_rgb_stock) }
+.grain_select_gate 0x6069b26c : { *(.grain_select_gate) }
+.grain_combiner_gate 0x6069b7b9 : { *(.grain_combiner_gate) }
+.grain_queue_gate 0x601caa2e : { *(.grain_queue_gate) }
 .tone_job_gate 0x60427fa8 : { *(.tone_job_gate) }
 .tone_source_gate 0x6069b580 : { *(.tone_source_gate) }
 .tone_job_bridge 0x6069b7ac : { *(.tone_job_bridge) }
 .text 0x6115b060 : { *(.text) }
 .tone_rows : { *(.tone_rows) }
+.grain_rows : { *(.grain_rows) }
 }
+grain_native_604c2f1d = 0x604c2f1d;
+grain_native_604c58a7 = 0x604c58a7;
+grain_native_604c5c46 = 0x604c5c46;
+grain_native_604c5d33 = 0x604c5d33;
+grain_native_604fb887 = 0x604fb887;
+grain_native_604fb918 = 0x604fb918;
+grain_native_604c4b3f = 0x604c4b3f;
+grain_native_604c5435 = 0x604c5435;
 stock_rgb_builder = 0x604f6083;
 stock_rgb_resume = 0x604f858d;
 stock_spline_coefficients = 0x604bdea7;
@@ -119,8 +132,10 @@ stock_builder_after_entry = 0x604f7c7b;
 tone_source_uncached = tone_source + 0x40000000;
 tone_rows_uncached = tone_rows + 0x40000000;
 tone_compact_rows = tone_rows_uncached + 640;
+grain_source_uncached = grain_source + 0x40000000;
+grain_rows_uncached = grain_rows + 0x40000000;
 '''.replace('0x6115b060', hex(late_start)) + f'hl_owner_row = {old["hl_owner_row"]:#x};\nhl_return = {old["hl_no_owner"] + 2:#x};\n')
-    elf = assemble(out / 'tone', [*SOURCES, ROOT / 'patches/tone/pen-f/src/transport.s', ROOT / 'patches/tone/pen-f/src/rgb.s'], layout)
+    elf = assemble(out / 'tone', [*SOURCES, ROOT / 'patches/tone/pen-f/src/transport.s', ROOT / 'patches/tone/pen-f/src/rgb.s', ROOT / 'patches/tone/pen-f/src/grain.s'], layout)
     current = symbols(elf)
     image, manifest = bytearray(reference), []
 
@@ -137,10 +152,14 @@ tone_compact_rows = tone_rows_uncached + 640;
                              before_sha256=sha(before), after_sha256=sha(data)))
 
     allocations = {'tone_early': (0x60427e78, 0x60427ed0),
-                   'tone_source': (0x60427c30, 0x60427c60),
+                   'tone_source': (0x60427c30, 0x60427c70),
                    'tone_rgb_gate': (0x60427fe8, 0x60428000),
-                   'tone_rgb_stock': (0x60427c60, 0x60427c70),
-                   'tone_storage_ids': (0x60427fc0, 0x60427fd8),
+                   'tone_rgb_stock': (0x601caa04, 0x601caa10),
+                   'tone_storage_ids': (0x601caa10, 0x601caa2e),
+                   'grain_primary_gate': (0x60427fc0, 0x60427fd8),
+                   'grain_select_gate': (0x6069b26c, 0x6069b2b0),
+                   'grain_combiner_gate': (0x6069b7b9, 0x6069b800),
+                   'grain_queue_gate': (0x601caa2e, 0x601caa50),
                    'tone_job_gate': (0x60427fa8, 0x60427fc0),
                    'tone_source_gate': (0x6069b580, 0x6069b590),
                    'tone_job_bridge': (0x6069b7ac, 0x6069b7b8),
@@ -148,10 +167,13 @@ tone_compact_rows = tone_rows_uncached + 640;
     for name, (start, end) in allocations.items():
         data = extract(elf, name)
         assert start + len(data) <= end, (name, len(data), end - start)
-        install(name, start, data, b'\xff'*len(data) if name in ('tone_source','tone_storage_ids','tone_rgb_gate','tone_rgb_stock') else None)
+        install(name, start, data, b'\xff'*len(data) if name in ('tone_source','tone_storage_ids','tone_rgb_gate','tone_rgb_stock','grain_select_gate','grain_combiner_gate','grain_queue_gate','grain_primary_gate') else None)
     rows = extract(elf, 'tone_rows')
     assert len(rows) == 720 and current['tone_rows'] + len(rows) <= late_end
     install('tone_rows', current['tone_rows'], rows)
+    grain_rows = extract(elf, 'grain_rows')
+    assert len(grain_rows) == 180 and current['grain_rows'] + 180 <= late_end
+    install('grain_rows', current['grain_rows'], grain_rows, b'\xff' * 180)
 
     def jump(name, at, target, short=False, expected=None):
         data = (b'\xcc' + struct.pack('<h', target - at) if short else
@@ -165,8 +187,23 @@ tone_compact_rows = tone_rows_uncached + 640;
     jump('native_rgb_call', 0x604f8588, current['tone_rgb_gate'], expected=bytes.fromhex('cdfbdaf0d8'))
     jump('native_tone_entry', 0x604f7c76, current['tone_build_gate'], expected=bytes.fromhex('f80404f1d3'))
     install('section8_load_end', 0x6004211d, struct.pack('<I', 0x6115c800), struct.pack('<I', 0x6115b800))
-    install('job_allocation', 0x604c1c0f, bytes.fromhex('2c703a'), bytes.fromhex('2c603a'))
-    install('job_zero_count', 0x604c1d1f, bytes.fromhex('8534'), bytes.fromhex('8524'))
+    install('job_allocation', 0x604c1c0f, bytes.fromhex('2c743a'), bytes.fromhex('2c603a'))
+    install('job_zero_count', 0x604c1d1f, bytes.fromhex('8538'), bytes.fromhex('8524'))
+    for name, at, target, before in (
+        ('grain_job_select', 0x604c589c, 'grain_select_gate', 'fa04a02fa50cc605cc8f04'),
+        ('grain_combiner_select', 0x604fb880, 'grain_combiner_gate', 'a00cc905cc9400'),
+    ):
+        expected = bytes.fromhex(before)
+        data = b'\xdc' + struct.pack('<i', current[target] - at)
+        install(name, at, data + b'\xcb' * (len(expected) - len(data)), expected)
+
+
+    at = 0x604c5430
+    install('grain_primary_select', at, b'\xdc' + struct.pack('<i', current['grain_primary_gate'] - at), bytes.fromhex('cd0ff7f014'))
+    for at in (0x604d62d2, 0x604d635c, 0x604d64b3, 0x604d65be, 0x604d68cb):
+        expected = b'\xdd' + struct.pack('<i', 0x604c2f1d - at) + b'\xf0\x18'
+        data = b'\xdd' + struct.pack('<i', current['grain_queue_gate'] - at) + b'\xf0\x18'
+        install(f'grain_mask_enqueue_{at:x}', at, data, expected)
 
     raw_source = (HSL / 'src/raw_development/raw_development.s').read_text()
     needle = ' .endr\nhl_raw_done:'

@@ -90,4 +90,4 @@ def resolve(word, raw_hml):
 CHANNEL_NAMES = ('ALL', 'R', 'G', 'B')
 STORAGE_IDS = ((967, 968, 969, 919), (970, 971, 972, 920), (973, 974, 975, 921))
 ROW_BYTES = 16
-JOB_BYTES = 14960
+JOB_BYTES = 14964

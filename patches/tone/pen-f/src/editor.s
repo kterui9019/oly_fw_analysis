@@ -14,10 +14,20 @@ tone_manager_loaded:
 .section .tone_manager_unavailable,"ax"
 tone_manager_unavailable:
  mov d1,d2
+ and 0xfffffffc,d2
+ cmp 0xf7524e00,d2
+ beq grain_unavailable_private
+ jmp tone_unavailable_tone
+grain_unavailable_private:
+ jmp tone_unavailable_check
+.section .tone_manager_unavailable_extra,"ax"
+tone_unavailable_tone:
+ mov d1,d2
  lsr 28,d2
  add -11,d2
  cmp 4,d2
  bcc tone_unavailable_stock
+tone_unavailable_check:
  mov d0,d2
  add -967,d2
  cmp 9,d2
@@ -28,6 +38,10 @@ tone_unavailable_stock:
  jmp stock_manager
 .section .tone_editor,"ax"
 tone_manager:
+ mov d1,d2
+ and 0xfffffffc,d2
+ cmp 0xf7524e00,d2
+ beq grain_manager
  mov d1,d2
  lsr 28,d2
  add -11,d2
@@ -115,7 +129,7 @@ tone_bind:
  cmp 0,d0
  beq tone_bind_stock
  movhu (194,a3),d1
- cmp 11,d1
+ cmp 12,d1
  bls tone_bind_valid
  clr d1
  movhu d1,(194,a3)
@@ -362,12 +376,14 @@ tone_input:
  beq tone_input_stock
  mov d0,d2
  movhu (194,a2),d1
- cmp 11,d1
+ cmp 12,d1
  bhi tone_input_stale
  call tone_selected_id,[d2],8
  cmp 0,d0
  beq tone_input_stale
  movhu (194,a2),d0
+ cmp 12,d0
+ beq grain_input
  call tone_decode_selection,[],4
  mov d1,(28,sp)
  mov d0,d1
@@ -439,7 +455,7 @@ tone_reset:
  mov d0,d2
  mov (4,sp),a0
  movhu (194,a0),d3
- cmp 11,d3
+ cmp 12,d3
  bhi tone_reset_stale
  mov (20,sp),d0
  add -54,d0
@@ -451,6 +467,8 @@ tone_reset:
  add 967,d0
  cmp d2,d0
  bne tone_reset_stale
+ cmp 12,d3
+ beq grain_reset
  add -20,sp
  mov d3,d0
  call tone_decode_selection,[],4
@@ -490,6 +508,7 @@ tone_reset_submit:
  mov (4,sp),a1
  call stock_gui_set,[],0
  add 20,sp
+tone_reset_after_submit:
  mov (4,sp),a0
  mov (200,a0),d0
  cmp 1,d0
@@ -600,11 +619,17 @@ tone_next_page:
  bne tone_next_native
  mov (8,sp),a0
  movhu (194,a0),d0
+ cmp 12,d0
+ beq grain_next_leave
  call tone_decode_selection,[],4
  inc d0
  cmp 3,d0
  bcs tone_next_recombine
+ mov 12,d0
+ bra tone_next_return
+grain_next_leave:
  clr d0
+ bra tone_next_return
 tone_next_recombine:
  mov d1,d2
  add d1,d1
@@ -733,7 +758,8 @@ tone_cycle:
  .endr
  movhu (194,a2),d0
  cmp 12,d0
- bcc tone_cycle_no
+ beq grain_cycle_consumed
+ bhi tone_cycle_no
  add 3,d0
  cmp 12,d0
  bcs tone_cycle_commit
@@ -753,6 +779,88 @@ tone_cycle_commit:
  call stock_draw_request,[d2,d3,a2],16
  mov 1,d0
  ret [d2,d3,a2,a3],40
+grain_cycle_consumed:
+ mov 1,d0
+ ret [d2,d3,a2,a3],40
 tone_cycle_no:
  clr d0
  ret [d2,d3,a2,a3],40
+
+.section .tone_reference,"ax"
+.global grain_current,grain_storage_id
+grain_storage_id:
+ add -967,d0
+ mov 3,d2
+ clr d1
+ mov d1,mdr
+ divu d2,d0
+ add 985,d0
+ ret [d2],8
+
+grain_current:
+ call grain_storage_id,[d2],8
+ mov 1,d1
+ call stock_active_get,[d2],8
+ jmp grain_decode
+
+grain_input:
+ mov d2,d0
+ call grain_current,[],4
+ mov (8,sp),d1
+ cmp 1,d1
+ beq grain_input_up
+ cmp 0,d0
+ beq grain_input_pack
+ add -1,d0
+ bra grain_input_pack
+grain_input_up:
+ cmp 3,d0
+ beq grain_input_pack
+ inc d0
+grain_input_pack:
+ or 0xf7524e00,d0
+ mov d0,a1
+ mov d2,d0
+ clr d1
+ jmp tone_input_submit
+
+grain_reset:
+ add -20,sp
+ mov 0xf7524e00,d0
+ mov d0,(4,sp)
+ call stock_gui_service,[],4
+ mov d2,d0
+ clr d1
+ mov (4,sp),a1
+ call stock_gui_set,[],0
+ add 20,sp
+ jmp tone_reset_after_submit
+
+.section .tone_editor,"ax"
+grain_manager:
+ cmp 967,d0
+ beq grain_manager_commit
+ cmp 970,d0
+ beq grain_manager_commit
+ cmp 973,d0
+ bne tone_manager_stock
+grain_manager_commit:
+ add -16,sp
+ mov d1,d2
+ and 0xfffffffc,d2
+ cmp 0xf7524e00,d2
+ bne tone_manager_reject
+ mov d0,d2
+ mov a0,a2
+ mov d1,(4,sp)
+ call grain_storage_id,[d2],8
+ mov (4,sp),a0
+ mov 1,d1
+ call stock_active_set,[d2],8
+ call hl_publish,[],4
+ cmp 967,d2
+ beq tone_refresh1
+ cmp 970,d2
+ beq tone_refresh2
+ call stock_color3_refresh,[],0
+ jmp tone_manager_finish

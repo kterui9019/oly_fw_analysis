@@ -1,4 +1,4 @@
-# PEN-F ALL/R/G/B five-point tone candidate
+# PEN-F RGB tone and COLOR grain candidate
 
 COLOR1–3 each have independent ALL, R, G and B curves with five vertically adjustable points at **0%,25%,50%,75%,100%**.
 Black, shadow, middle, highlight and white form one nondecreasing piecewise
@@ -20,9 +20,15 @@ still require camera qualification.
 ## Body controls
 
 Open the native COLOR1, COLOR2 or COLOR3 tone editor. INFO cycles
-shadow/highlight → middle → black/white → shadow/highlight.
-Trash cycles ALL → R → G → B while retaining the page. Held OK resets that
+shadow/highlight → middle → black/white → Grain → ALL shadow/highlight.
+Trash cycles ALL → R → G → B while retaining the tone page. Held OK resets that
 page of the selected channel. The footer and graph follow the selected channel.
+
+INFO after black/white opens a shared Grain page. Both dials and the arrows
+change Off/Low/Medium/High, held OK resets Off, and Delete leaves grain unchanged.
+INFO from Grain returns to ALL shadow/highlight. Each COLOR profile saves its
+own strength. See [COLOR grain](../../../docs/color/pen-f/COLOR_GRAIN.md) for
+state, image ownership, native verification, and physical-test limits.
 
 | Page | Left/right | Down/up | Front dial | Rear dial | Held OK |
 |---|---|---|---|---|---|
@@ -97,8 +103,8 @@ its stock restore container. Producing these files performs no device access.
 |---|---|
 | Required full stock | `77398610b379f80238117f31a6d5bbf65d608b49ec563666c64d84367e969f2c` |
 | Pinned HSL package | `4f9a36e6742728ded3d9b443915355f1d1eea0371e1da673f322de970994f717` |
-| RGB five-point + gentler shading main | `16697506a560b5f6208f6935a17f9a9cafa438178f538bdf1d059c6d1891b3d7` |
-| RGB five-point + gentler shading container,44433408 bytes | `db9b9ef3637a4bc7e931ac0f9f527e33bcb0a8cfa6125ca6b230e5c85503db90` |
+| RGB five-point + gentler shading main | `6282452aa7f066ced8c70c6302b34ab22d3267ed56c4f5406b62379a417cdb44` |
+| RGB five-point + gentler shading container,44433408 bytes | `81c354f0d23611392acf6e314ba135f0f318b766640663732c1113249decb6a8` |
 | Retained HSL OSD | `f713df2a2d7d57a511e55cabb0f84ac4d612f99c58df4502a89b32bd8580084c` |
 
 The candidate main and container hashes for each build are recorded in `build.json`.

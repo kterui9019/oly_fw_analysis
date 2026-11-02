@@ -215,12 +215,12 @@ def footer_cases(graph,getter):
 def footer_fallback_cases(graph,getter):
     from penf_recovery_isolation_probe import without_ranges
     rows=[]
-    for reason in ('mono','stale','page12','null_controller','non_tone','missing6','missing8','missing_both'):
+    for reason in ('mono','stale','page13','null_controller','non_tone','missing6','missing8','missing_both'):
         for first in (0,1):
             state=footer_state(graph,getter,first=first)
             if reason=='mono':mode(state,57)
             elif reason=='stale':mode(state,55)
-            elif reason=='page12':state.write(ACTUATOR+194,b'\x0c\0')
+            elif reason=='page13':state.write(ACTUATOR+194,b'\x0d\0')
             elif reason=='null_controller':put32(state,0x6161b810,0)
             elif reason=='non_tone':put32(state,ACTUATOR,0x60de3ff8)
             else:

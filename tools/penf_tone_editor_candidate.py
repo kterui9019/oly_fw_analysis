@@ -62,17 +62,18 @@ def build_editor(folder, candidate):
         tone_resolve=names['tone_resolve'],tone_decode=names['tone_decode'],
         tone_edit=names['tone_edit'],tone_apply=names['tone_apply'],
         tone_storage_ids=names['tone_storage_ids'],hsl_dispatch=names['hsl_dispatch'],
-        stock_draw_request=0x60d147e8)
+        stock_draw_request=0x60d147e8,grain_decode=names['grain_decode'])
     external.update({f'stock_input_{name}_resume': at for name, at in
                      (('up',0x60c8720b), ('down',0x60c8726d), ('left',0x60c872d1),
                       ('right',0x60c87335), ('rear',0x60c873b2), ('front',0x60c8742e))})
-    slots = {'tone_editor': (names['tone_rows']+720,0x6115c800),
+    slots = {'tone_editor': (names['grain_rows']+180,0x6115c800),
              'tone_resident': (0x60c87670,0x60c877e2),
              'tone_pair_ids': (0x60c877e2,0x60c877f0),
              'tone_page': (0x60427fd8,0x60427fe8),
              'tone_dispatch_gate': (0x601cafc0,0x601cafe0),
              'tone_manager_gate': (0x60a4ff8d,0x60a4ffa6),
-             'tone_manager_unavailable': (0x6081b8af,0x6081b8cf)}
+             'tone_manager_unavailable': (0x6081b8af,0x6081b8cf),
+             'tone_manager_unavailable_extra': (names['grain_resident_end'],0x6069b800)}
     layout.write_text('SECTIONS {\n' + ''.join(f'.{k} {a:#x} : {{ *(.{k})' + (' *(.tone_reference) *(.tone_selected)' if k == 'tone_editor' else '') + ' }\n' for k,(a,b) in slots.items()) +
                       '}\n' + ''.join(f'{key} = {value:#x};\n' for key,value in external.items()))
     elf = assemble(folder / 'assembly', [tone_source], layout)
@@ -82,7 +83,7 @@ def build_editor(folder, candidate):
         data = extract(elf, section)
         chunks[section] = data
         assert address + len(data) <= end, (section, len(data), end-address)
-        if section in ('tone_editor','tone_reference','tone_selected','tone_dispatch_gate','tone_page'):
+        if section in ('tone_editor','tone_reference','tone_selected','tone_dispatch_gate','tone_page','tone_manager_unavailable_extra'):
             assert image[address-BASE:address-BASE+len(data)] == b'\xff' * len(data)
         image[address-BASE:address-BASE+len(data)] = data
     expected = {0x60c878ec: 'f1d39fbcf16f', 0x60c875e4: '5c040082fa20b400',

@@ -7,7 +7,8 @@ This offline candidate joins the verified tone adapter to committed settings, ac
 Each profile carries four aligned u32 words `[ALL,R,G,B]`. The canonical format
 is in [TONE_POINTS.md](TONE_POINTS.md); the complete channel contract and native
 ownership evidence are in [TONE_RGB.md](TONE_RGB.md). Publication copies all twelve
-words opaquely from native ACTIVE part1 into a 48-byte section2 source. The IDs
+words opaquely from native ACTIVE part1 into the first48 bytes of a60-byte section2 source. The final12 bytes hold
+the [COLOR grain](COLOR_GRAIN.md) words. The IDs
 are `(967,968,969,919)`, `(970,971,972,920)` and `(973,974,975,921)` for COLOR1–3.
 It uses the native ACTIVE getter. Existing HSL boot, commit and context0 refresh
 hooks own publication; context1 staging remains excluded.
@@ -30,7 +31,7 @@ padding, extra ring or UI pointer is used.
 | Compact conversion6055a28a | Existing successful-call continuation appends the four-channel row; failed calls leave the destination unchanged. |
 | Selected RAW edit60af2f56 | COLOR acquisition uses the common helper; non-COLOR reuse clears both HSL and tone rows. |
 
-All job writes come from the acquired owner rather than the current source. Invalid owner addresses write a zero 16-byte row. The destination is job+14944..14959, following the unchanged24-byte HSL trailer. The constructor allocation argument becomes14960; its final native memset covers52bytes beginning at14908, including all HSL and tone bytes. This remains within the established16KiB allocation class, but a full native allocator/constructor execution is not claimed: the saved boot/heap checkpoint required by that older probe is absent.
+All job writes come from the acquired owner rather than the current source. Invalid owner addresses write a zero 16-byte row. The destination is job+14944..14959, following the unchanged24-byte HSL trailer. The COLOR grain word follows at14960. The constructor allocation argument is14964; its final native memset covers56bytes beginning at14908, including HSL, tone, and grain bytes. This remains within the established16KiB allocation class, but a full native allocator/constructor execution is not claimed: the saved boot/heap checkpoint required by that older probe is absent.
 
 ## Placement and residency
 
@@ -38,7 +39,7 @@ All job writes come from the acquired owner rather than the current source. Inva
 
 The early publisher and ALL stock-builder fallback occupy the section2 gap
 beginning60427e78; the source is60427c30..60427c60. The job gate is60427fa8,
-ID table60427fc0..60427fd8 and RGB gate60427fe8..60428000. Small section3 bridges
+ID table601caa10..601caa2e and RGB gate60427fe8..60428000. Small section3 bridges
 use6069b580 and6069b7ac. Late code and the 720-byte row table begin6115b014;
 section8's verified native end grows to6115c800. The RAW extension remains in
 its112-byte range at60fdc750. Exact linked sizes and hashes are emitted into

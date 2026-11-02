@@ -93,7 +93,7 @@ def editor_cases(graph):
                 put32(s,INITIAL_SP+4,ACTUATOR);put32(s,INITIAL_SP+20,53+profile)
                 s.regs=dict(PRESERVED,pc=0x60c87670,sp=INITIAL_SP,d0=0,d1=0,a0=0,a1=0,a3=0,psw=0)
                 stopped(s,s.run({0x60c879c8},limit=100000),0x60c879c8)
-                assert struct.unpack('<H',s.read(ACTUATOR+194,2))[0]==channel*3+(page+1)%3
+                assert struct.unpack('<H',s.read(ACTUATOR+194,2))[0]==(channel*3+page+1 if page<2 else 12)
                 count+=1
     return dict(states=count, input_channels_explicit=True, info_retains_channel=True)
 
@@ -121,7 +121,7 @@ def run_gamma(s, candidate):
     assert s.regs['sp']==INITIAL_SP
     assert s.read(REQUEST,1848)==before
     assert u32(s,CONTEXT+56)==controls
-    _check_guards(s,JOB,14960);_check_guards(s,OUTPUT,5212)
+    _check_guards(s,JOB,14964);_check_guards(s,OUTPUT,5212)
     pointers=struct.unpack('<2I',s.read(OUTPUT+1052,8))
     return tuple(tuple(struct.unpack('<256I',s.read(p,1024))) if p else None for p in pointers)
 

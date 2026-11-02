@@ -3,7 +3,8 @@
 The COLOR1–3 tone editor has independent ALL, R, G and B curves. Trash cycles
 ALL → R → G → B → ALL. INFO retains the selected channel and cycles the existing
 shadow/highlight, middle and black/white pages. A held OK resets the current
-page of the current channel. The native footer includes the channel, selected
+page of the current channel. INFO after black/white now enters the shared [Grain page](COLOR_GRAIN.md),
+whose next INFO returns to ALL shadow/highlight. The native tone footer includes the channel, selected
 values, INFO glyph and DEL hint. The graph uses that channel's identity-input
 transfer. Channel switching always requests a redraw, including equal neutral
 curves, and never writes a setting.
@@ -31,8 +32,8 @@ on the existing committed HSL lifecycle. Source data is profile-major
 `[ALL,R,G,B]`. Acquisition snapshots all 16 bytes into each of 40 large and five
 compact owner rows. Every reuse overwrites the complete row; invalid/non-COLOR
 owners clear it. Conversion copies the acquired row to job offsets14944..14959.
-Allocation grows to14960 bytes and native final clearing grows to52 bytes from
-14908. The bounded allocation-prefix/clear proof does not model the full heap.
+The COLOR grain extension adds its word at14960. Allocation is14964 bytes and
+native final clearing covers56 bytes from14908. The bounded allocation-prefix/clear proof does not model the full heap.
 
 GUI requests retain registered high IDs967/970/973. Their high nibble B/C/D/E
 identifies ALL/R/G/B, independently of the current UI selection. The manager
@@ -168,7 +169,7 @@ candidate, not a claim of verified camera RGB pixels.
 
 Section8's native end selector at6004211d changes6115b800 to6115c800. Its loader
 copies362496 bytes from logical41483000. The extra4096 bytes are stock FF and
-remain4608 bytes below the next known library source at6115da00. Source48 lives
+remain4608 bytes below the next known library source at6115da00. The tone source is the first48 bytes of the60-byte tone/grain source
 at60427c30, inside already loaded section2; the section2 initializer count is
 zero and native execution leaves it untouched. The dispatch gate occupies
 601cafc0..601cafe0 in section1, which already contains the application startup.
