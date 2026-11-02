@@ -1,6 +1,6 @@
 # COLOR grain diagnostic
 
-This temporary build records whether five existing CPU paths observed COLOR High grain. It does not change the grain algorithm or establish that grain appears in a JPEG. The five digits are independent facts accumulated during the resident-load session. They need not describe the same photograph.
+This temporary build records whether five existing CPU paths observed the High grain setting. The first two observations concern acquisition and conversion; the last three also require COLOR mode. It does not change the grain algorithm or establish that grain appears in a JPEG. The five digits are independent facts accumulated during the resident-load session. They need not describe the same photograph.
 
 ## Run a camera trial
 
