@@ -8,6 +8,7 @@ from penf_emulator import BASE, ROOT
 from penf_tone_candidate import assemble, build_candidate, extract, symbols
 from penf_tone_editor_candidate import build_editor
 from penf_tone_probe import sha
+from penf_shading_candidate import apply_shading, calibration
 
 
 @dataclass(frozen=True)
@@ -86,10 +87,13 @@ def build_graph(folder, *, stock_main=None):
     address=0x60bf7c40
     assert image[address-BASE:address-BASE+7]==bytes.fromhex('5cccf004f82550')
     image[address-BASE:address-BASE+7]=b'\xdc'+struct.pack('<i',names['tone_filter_gate']-address)+b'\xcb\xcb'
+    image = apply_shading(image)
     (folder/'main.bin').write_bytes(image)
     (folder/'placement.json').write_text(json.dumps(dict(candidate_sha256=sha(image),
         source_sha256=sha((ROOT/'patches/tone/pen-f/src/display.s').read_bytes()),
         viewer_source_sha256=sha((ROOT/'patches/tone/pen-f/src/viewer.s').read_bytes()),
+        shading_source_sha256=sha((ROOT/'tools/penf_shading_candidate.py').read_bytes()),
+        shading=calibration(),
         chunks={k:dict(address=hex(slots[k][0]),bytes=len(v),capacity=slots[k][1]-slots[k][0]) for k,v in chunks.items()},
         symbols={k:hex(v) for k,v in names.items()}),indent=2)+'\n')
     return GraphCandidate(base,editor,bytes(image),names,chunks)

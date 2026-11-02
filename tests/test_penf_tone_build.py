@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import os
+import struct
 from pathlib import Path
 import subprocess
 import sys
@@ -13,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('penf_tone_build', ROOT/'patches/tone/pen-f/build.py')
 build = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(build)
+from penf_shading_candidate import TABLE, STOCK, SUBTLE
 REFERENCE = json.loads((ROOT/'tests/fixtures/tone-builder-reference.json').read_text())
 
 
@@ -69,6 +71,14 @@ class ToneBuildTests(unittest.TestCase):
             baseline = build.parse((out/'hsl-reference/install/DCOLYMP/E1229999.BIN').read_bytes())
             self.assertEqual(build.reconstruct(blocks), data)
             self.assertEqual(blocks[0].payload, (out/'candidate/main.bin').read_bytes())
+            offset = TABLE - build.candidate.BASE
+            self.assertEqual(struct.unpack_from('<5H', blocks[0].payload, offset), SUBTLE)
+            tone_only = bytearray(blocks[0].payload)
+            struct.pack_into('<5H', tone_only, offset, *STOCK)
+            self.assertEqual(build.sha(tone_only), REFERENCE['tone_only_main_sha256'])
+            placement = json.loads((out/'candidate/placement.json').read_text())
+            self.assertEqual(placement['candidate_sha256'], report['main_sha256'])
+            self.assertEqual(placement['shading'], report['shading'])
             self.assertEqual(blocks[1].payload, baseline[1].payload)
             self.assertNotEqual(blocks[1].payload, original[1].payload)
             for block, old in zip(blocks, original):

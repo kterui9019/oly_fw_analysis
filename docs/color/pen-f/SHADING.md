@@ -35,6 +35,42 @@ The camera's encoded CMIO T contains another copy of the shading data. Changing
 the capture table does not automatically change RAW-development metadata or
 live-view mapping (`602fc73a`).
 
+## Gentler steps in the tone candidate
+
+The [current tone build](../../../patches/tone/pen-f/README.md) replaces the
+capture table at `605fc45e` for **both signs**. With the old magnitude-one
+radial amount defined as 10, the new five steps target 2/4/6/8/10. Zero and
+the native white/black blend selection retain their stock behavior.
+
+| Camera magnitude (either sign) | Target relative strength | Coordinate word | Actual relative radial amount |
+| ---: | ---: | ---: | ---: |
+| 1 | 2 | 415 | 1.998 |
+| 2 | 4 | 587 | 3.996 |
+| 3 | 6 | 719 | 5.996 |
+| 4 | 8 | 830 | 7.991 |
+| 5 | 10 | 928 | 10.000 |
+
+Calibration accounts for the native integer reciprocal: with
+`q_old = floor(1048576/928)` and `q_new = floor(1048576/word)`, the relative
+squared radial amount is `(q_old/q_new)^2`. Scaling the coordinate words
+directly by 20/40/60/80/100% would square those percentages and make the lower
+steps excessively weak. New magnitude five uses exactly the old magnitude-one
+word. These ratios describe geometry, not linear pixel brightness or perceived
+strength; the native nonlinear falloff curve is unchanged.
+
+`tools/penf_shading_candidate.py` checks the original five words before replacing
+only those ten bytes. The tone builder records the calibration and source hash.
+Tests cover all signed steps, zero and invalid levels through both native
+request layouts, as well as the native coordinate-scale block. The container
+test restores the stock table in memory and checks the previous RGB-tone main
+hash, establishing that no other main-payload bytes changed.
+
+This change covers the capture table. The live-view enum mapping and encoded
+CMIO T/RAW-development metadata are unchanged; preview and external RAW
+development are not qualified to match the weaker captured effect. Physical
+camera/JPEG appearance has not been tested. The pinned HSL-only release builder
+continues to reproduce its original package.
+
 ## Pipeline position
 
 Workspace applies creative shading to developed image data, after its ordinary
