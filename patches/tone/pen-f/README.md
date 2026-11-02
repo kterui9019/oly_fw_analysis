@@ -4,7 +4,12 @@ COLOR1–3 each have independent ALL, R, G and B curves with five vertically adj
 Black, shadow, middle, highlight and white form one nondecreasing piecewise
 linear transfer. The camera controls, graph, native profile/bank storage and
 per-image processing use the same state. The candidate retains the pinned HSL
-release and Value OSD. Building performs no camera access or flashing.
+release and Value OSD. Creative shading is gentler for both signs: taking the
+old ±1 radial strength as 10, ±1 through ±5 now target **2/4/6/8/10**. New ±5
+uses exactly the old ±1 capture coefficient. These are radial-geometry ratios,
+not measured perceptual strengths. Live-view mapping and RAW metadata are
+unchanged; see [shading calibration and limits](../../../docs/color/pen-f/SHADING.md#gentler-steps-in-the-tone-candidate).
+Building performs no camera access or flashing.
 
 The underlying equal-quarter ALL editor includes the earlier alignment and
 physical dial corrections. The camera screen has been reported to open, while
@@ -92,11 +97,14 @@ its stock restore container. Producing these files performs no device access.
 |---|---|
 | Required full stock | `77398610b379f80238117f31a6d5bbf65d608b49ec563666c64d84367e969f2c` |
 | Pinned HSL package | `4f9a36e6742728ded3d9b443915355f1d1eea0371e1da673f322de970994f717` |
-| RGB five-point main | `eab1448dd516303168aa30455a1a1a10f3124a9fd739668846e80cc0f59af4ed` |
-| RGB five-point container,44433408 bytes | `cf3c34352d16928240d823882b0dab3e91954383c72d7353e789a7f0a03c9e4c` |
+| RGB five-point + gentler shading main | `16697506a560b5f6208f6935a17f9a9cafa438178f538bdf1d059c6d1891b3d7` |
+| RGB five-point + gentler shading container,44433408 bytes | `db9b9ef3637a4bc7e931ac0f9f527e33bcb0a8cfa6125ca6b230e5c85503db90` |
 | Retained HSL OSD | `f713df2a2d7d57a511e55cabb0f84ac4d612f99c58df4502a89b32bd8580084c` |
 
 The candidate main and container hashes for each build are recorded in `build.json`.
+The earlier tone-only main hash was
+`eab1448dd516303168aa30455a1a1a10f3124a9fd739668846e80cc0f59af4ed`;
+restoring the five stock shading words reproduces that main exactly.
 
 ## Verification and limits
 
@@ -144,6 +152,7 @@ PYTHONPATH=tools python3 tools/penf_tone_viewer_probe.py --out /tmp/tone-viewer
 PYTHONPATH=tools python3 tools/penf_tone_rgb_viewer_probe.py --out /tmp/tone-rgb-viewer
 PENF_STOCK_CONTAINER=/path/to/OLY_E_122_3101_0000_0000.BIN \
   python3 -m unittest discover -s tests -p 'test_penf_tone*.py' -v
+python3 -m unittest discover -s tests -p 'test_penf_shading_candidate.py' -v
 ```
 
 Native probes require the pinned decoded firmware and MN103 execution harness;

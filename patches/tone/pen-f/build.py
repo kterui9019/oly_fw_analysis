@@ -20,6 +20,7 @@ sys.path.insert(0, str(ROOT / 'tools'))
 from oly_container import parse, reconstruct, replace_payload
 import penf_tone_candidate as candidate
 from penf_tone_graph_candidate import build_graph
+from penf_shading_candidate import calibration
 
 
 def sha(data):
@@ -115,7 +116,8 @@ def build(args):
     install.write_bytes(package)
     sources = [*HERE.glob('src/*.s'), HERE/'build.py',
                *(ROOT/'tools'/name for name in ('penf_tone_candidate.py',
-                    'penf_tone_editor_candidate.py', 'penf_tone_graph_candidate.py'))]
+                    'penf_tone_editor_candidate.py', 'penf_tone_graph_candidate.py',
+                    'penf_shading_candidate.py'))]
     report = dict(status='offline candidate with bounded native verification; physical camera qualification pending',
         stock_sha256=sha(stock), pinned_hsl_package_sha256=sha(baseline_package),
         package_sha256=sha(package), package_bytes=len(package), main_sha256=sha(graph.image),
@@ -123,6 +125,7 @@ def build(args):
         component_checksums_valid=True, container_metadata_unchanged=True,
         main_changed_bytes=sum(a != b for a, b in zip(baseline[0].payload, graph.image)),
         nonoverlapping_main_ranges=spans, camera_access=False,
+        shading=calibration(),
         sources={str(p.relative_to(ROOT)):sha(p.read_bytes()) for p in sources},
         tools={name:dict(sha256=sha(path.read_bytes()),
               version=subprocess.check_output([str(path),'--version'],text=True).splitlines()[0])
