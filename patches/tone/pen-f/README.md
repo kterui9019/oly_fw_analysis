@@ -103,14 +103,15 @@ its stock restore container. Producing these files performs no device access.
 |---|---|
 | Required full stock | `77398610b379f80238117f31a6d5bbf65d608b49ec563666c64d84367e969f2c` |
 | Pinned HSL package | `4f9a36e6742728ded3d9b443915355f1d1eea0371e1da673f322de970994f717` |
-| RGB five-point + gentler shading main | `6282452aa7f066ced8c70c6302b34ab22d3267ed56c4f5406b62379a417cdb44` |
-| RGB five-point + gentler shading container,44433408 bytes | `81c354f0d23611392acf6e314ba135f0f318b766640663732c1113249decb6a8` |
+| COLOR grain + HSL Delete fix main | `b415cea09c5eb88a09a70736c7c65d82c6c01bc7497881375a95d9dce685edf3` |
+| COLOR grain + HSL Delete fix container,44433408 bytes | `31ed97a1e9643f29f8f3ae4cfb58631e889236be9d3a82f127710b090f9908ae` |
 | Retained HSL OSD | `f713df2a2d7d57a511e55cabb0f84ac4d612f99c58df4502a89b32bd8580084c` |
 
-The candidate main and container hashes for each build are recorded in `build.json`.
-The earlier tone-only main hash was
-`eab1448dd516303168aa30455a1a1a10f3124a9fd739668846e80cc0f59af4ed`;
-restoring the five stock shading words reproduces that main exactly.
+The candidate is `generated/grain-hsl-delete-fix/install/DCOLYMP/E1229999.BIN`.
+Its main and container hashes are recorded in `build.json`. This build changes
+only four decoded firmware bytes from the first COLOR grain candidate to fix
+HSL Delete dispatch. The report that grain is invisible in live view and saved
+JPEG remains unresolved; see [the investigation](../../../docs/color/pen-f/GRAIN_VISIBILITY_INVESTIGATION.md).
 
 ## Verification and limits
 
@@ -134,8 +135,8 @@ its ABI return. The old HSL target fails at viewer offset 120 in the same fixtur
 `tone_cycle` uses the viewer's first virtual method, matching the native
 controller convention. The audit is under `generated/rgb-tone-del-viewer-fix/audit`.
 It retains the failing test, test-only patch, focused logs and exact build hashes.
-The new candidate is `generated/rgb-tone-del-viewer-fix/install/DCOLYMP/E1229999.BIN`.
-The previous candidate remains in its original output directory.
+That earlier candidate is `generated/rgb-tone-del-viewer-fix/install/DCOLYMP/E1229999.BIN`.
+It predates COLOR grain and the HSL Delete fallback fix.
 
 The fixture models exact allocator returns, camera context properties, status,
 logs, timer and GUI notification services. The helper executes its native
