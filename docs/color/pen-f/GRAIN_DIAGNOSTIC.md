@@ -1,6 +1,6 @@
 # COLOR grain diagnostic
 
-This temporary build records whether five existing CPU paths observed the High grain setting. The first two observations concern acquisition and conversion; the last three also require COLOR mode. It does not change the grain algorithm or establish that grain appears in a JPEG. The five digits are independent facts accumulated during the resident-load session. They need not describe the same photograph.
+This temporary build records whether five existing CPU paths observed the High grain setting. The first two observations concern acquisition and copying to a job; the last three also require COLOR mode. It does not change the grain algorithm or establish that grain appears in a JPEG. The five digits are independent facts accumulated during the resident-load session. They need not describe the same photograph.
 
 ## Run a camera trial
 
@@ -18,7 +18,7 @@ If the initial code already contains a one, that digit cannot distinguish the su
 The digits are ordered as follows.
 
 1. A High grain word was acquired into an owner row.
-2. A High grain word was copied into a job.
+2. A High grain word was copied into a job during constructor snapshot or conversion.
 3. COLOR selection decoded High.
 4. A COLOR High stage `0x900` mask request reached the existing enqueue hook.
 5. The combiner accepted a COLOR High kind-0 request at stage `0x901` or `0x902`.

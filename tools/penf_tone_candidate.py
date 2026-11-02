@@ -96,6 +96,8 @@ def build_candidate(out, *, expanded=False, stock_main=None):
     layout = out / 'tone.ld'
     layout.write_text('''SECTIONS {
 .tone_early 0x60427e78 : { *(.tone_early) }
+.grain_constructor_gate 0x601cafb6 : { *(.grain_constructor_gate) }
+.grain_job_tail 0x601caa43 : { *(.grain_job_tail) }
 .tone_source 0x60427c30 : { *(.tone_source) }
 .grain_primary_gate 0x60427fc0 : { *(.grain_primary_gate) }
 .tone_storage_ids 0x601caa10 : { *(.tone_storage_ids) }
@@ -112,6 +114,11 @@ def build_candidate(out, *, expanded=False, stock_main=None):
 .grain_rows : { *(.grain_rows) }
 }
 grain_native_604c2f1d = 0x604c2f1d;
+grain_native_60249c22 = 0x60249c22;
+grain_native_604c2a4f = 0x604c2a4f;
+grain_native_604c2032 = 0x604c2032;
+grain_native_604be99a = 0x604be99a;
+grain_native_604c20d7 = 0x604c20d7;
 grain_native_604c58a7 = 0x604c58a7;
 grain_native_604c5c46 = 0x604c5c46;
 grain_native_604c5d33 = 0x604c5d33;
@@ -153,7 +160,10 @@ grain_rows_uncached = grain_rows + 0x40000000;
         manifest.append(dict(name=name, address=address, bytes=len(data),
                              before_sha256=sha(before), after_sha256=sha(data)))
 
+    assert reference[0x60427ec5-BASE:0x60427ed0-BASE] == b'\xff' * 11
     allocations = {'tone_early': (0x60427e78, 0x60427ed0),
+                   'grain_constructor_gate': (0x601cafb6, 0x601cafdb),
+                   'grain_job_tail': (0x601caa43, 0x601caa50),
                    'tone_source': (0x60427c30, 0x60427c70),
                    'tone_rgb_gate': (0x60427fe8, 0x60428000),
                    'tone_rgb_stock': (0x601caa04, 0x601caa10),
@@ -169,7 +179,7 @@ grain_rows_uncached = grain_rows + 0x40000000;
     for name, (start, end) in allocations.items():
         data = extract(elf, name)
         assert start + len(data) <= end, (name, len(data), end - start)
-        install(name, start, data, b'\xff'*len(data) if name in ('tone_source','tone_storage_ids','tone_rgb_gate','tone_rgb_stock','grain_select_gate','grain_combiner_gate','grain_queue_gate','grain_primary_gate') else None)
+        install(name, start, data, b'\xff'*len(data) if name in ('tone_source','tone_storage_ids','tone_rgb_gate','tone_rgb_stock','grain_select_gate','grain_combiner_gate','grain_queue_gate','grain_primary_gate','grain_constructor_gate','grain_job_tail') else None)
     rows = extract(elf, 'tone_rows')
     assert len(rows) == 720 and current['tone_rows'] + len(rows) <= late_end
     install('tone_rows', current['tone_rows'], rows)
@@ -199,6 +209,9 @@ grain_rows_uncached = grain_rows + 0x40000000;
         data = b'\xdc' + struct.pack('<i', current[target] - at)
         install(name, at, data + b'\xcb' * (len(expected) - len(data)), expected)
 
+
+    jump('grain_constructor', 0x604c202d, current['grain_constructor_gate'], expected=bytes.fromhex('cd220ab010'))
+    jump('grain_prepare', 0x604c20d2, current['grain_prepare_gate'], expected=bytes.fromhex('cdc8c8a00c'))
 
     at = 0x604c5430
     install('grain_primary_select', at, b'\xdc' + struct.pack('<i', current['grain_primary_gate'] - at), bytes.fromhex('cd0ff7f014'))

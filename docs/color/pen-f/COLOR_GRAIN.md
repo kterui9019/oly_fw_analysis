@@ -35,10 +35,15 @@ Publication reads the twelve existing tone words and three grain words through
 the same committed HSL publication lifecycle. The source occupies 60 bytes at
 `60427c30`. The first 48 bytes retain their existing tone layout. Each of the
 40 large and five compact image owners has a separate acquired grain word.
-The native conversion hooks copy that word to job offset 14960. Allocation
-is 14964 bytes, and the final native clear covers 56 bytes from offset 14908.
-A later UI edit cannot change the grain of an acquired photograph. Invalid
-owner reuse and unloaded conversion clear the grain trailer. RAW development
+For the capture callback, constructor metadata identifies the acquired owner.
+The constructor copies its grain word to job offset 14960 before selecting
+and initializing the native job list. Allocation is 14964 bytes, and the final
+native clear covers 56 bytes from offset 14908. Conversion hooks also copy the
+word for their existing paths. A valid capture job keeps its constructor
+snapshot if its large owner is reused before conversion. Compact-owner copies
+remain updateable. A later UI edit cannot change the grain of an acquired
+photograph. Unrecognized owner pointers and unloaded conversion clear the
+grain trailer. RAW development
 uses the existing selected-profile acquisition and non-COLOR clear path.
 
 External settings export, Wi-Fi recipes, and ORF extension records do not yet
@@ -49,7 +54,9 @@ execution evidence.
 ## Processing requests
 
 For a COLOR job with valid nonzero acquired grain, the selector writes its
-level to the existing job byte `+1665`. It bypasses the initial ordinary COLOR
+level to the existing job byte `+0x1665` (5733). Native conversion later
+overwrites that byte. Preparation restores it from the job trailer before
+request packing. The selector bypasses the initial ordinary COLOR
 classification and enters the existing MONO job selection branch. The native
 format guards remain in that branch. The job itself keeps COLOR mode 11 and
 its original flags. In particular, the MONO `200000` flag is not added.
@@ -80,16 +87,22 @@ request bytes, including the latest main branch's subtle shading calibration.
 
 The candidate stays within the existing section8 end `6115c800`. It adds no
 new loader extent. The relocated RGB fallback, settings-ID table, and queue
-gate use the checked section1 gap `601caa04..601caa50`. Resident selection and
-combiner gates use section3 gaps `6069b26c..6069b2b0` and
+gate use the checked section1 gap `601caa04..601caa50`. Resident constructor
+and preparation gates use checked section1 and section3 gaps. The UI dispatch and unloaded job-clear stubs share those resident gaps.
+Resident selection and combiner gates use section3 gaps `6069b26c..6069b2b0` and
 `6069b7b9..6069b800`. Every placement checks the exact FF preimage and its
 capacity. Late-code entry gates retain the section-loaded bit checks.
 
 `tools/penf_grain_candidate_probe.py` executes the assembled decode, native
 storage/reset, acquisition, conversion, GUI manager, input methods, viewer,
-request builders, combiner configuration, and both MMIO upload banks. Its
-joined capture case acquires High, changes the UI to Off, and submits High
-through the native conversion and request path. The native common image
+request builders, combiner configuration, and both MMIO upload banks.
+`tools/penf_grain_order_probe.py` provides the native-order fixture. It acquires
+grain, changes the UI, registers metadata,
+selects the constructor list, executes the conversion window that overwrites
+the grain byte, prepares the job, and submits the already-selected list.
+The full converter and camera capture are not exercised by that fixture.
+Compact conversion retains its existing copy behavior, but its constructor
+producer has not been shown to select COLOR grain early. The native common image
 builder verifies that nonneutral HSL, ALL, and RGB edits leave the mask
 unchanged while changing the COLOR image stages.
 

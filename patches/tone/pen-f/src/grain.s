@@ -27,7 +27,7 @@ grain_rows:
 991:
  diagnostic_restore
 .endm
-.global grain_decode,grain_select,grain_queue,grain_job_unloaded,grain_combiner
+.global grain_decode,grain_select,grain_queue,grain_combiner
 grain_decode:
  mov d0,d1
  and 0xfffffffc,d1
@@ -158,6 +158,22 @@ grain_to_job:
  cmp 0,a0
  beq grain_job_invalid
  mov a0,d0
+ cmp tone_compact_rows,d0
+ bcc grain_job_copy
+ mov a2,a1
+ add -14920,a1
+ mov (4,a1),d0
+ cmp 0x6051fbcc,d0
+ bne grain_job_copy
+ mov (12192,a1),d0
+ cmp 11,d0
+ bne grain_job_copy
+ mov (40,a2),d0
+ and 0xfffffffc,d0
+ cmp 0xf7524e00,d0
+ beq grain_job_preserved
+grain_job_copy:
+ mov a0,d0
  sub tone_rows_uncached,d0
  lsr 2,d0
  mov grain_rows_uncached,a1
@@ -168,6 +184,7 @@ grain_job_invalid:
 grain_job_store:
  mov d0,(40,a2)
  diagnostic_word d0,0xf7524e03,1
+grain_job_preserved:
  ret [],4
 
 grain_clear:
@@ -196,12 +213,6 @@ grain_select_unloaded:
  jmp grain_native_604c5d33
 grain_select_native_higher:
  jmp grain_native_604c58a7
-grain_job_unloaded:
- clr d0
- .irp offset,24,28,32,36,40
- mov d0,(\offset,a2)
- .endr
- ret [],4
 
 
 .section .grain_combiner_gate,"ax"
@@ -262,3 +273,97 @@ grain_primary_done:
  mov d3,d0
  add 8,sp
  ret [d2,d3,a2,a3],20
+
+.section .grain_constructor_gate,"ax"
+.global grain_constructor_gate,grain_prepare_gate
+grain_constructor_gate:
+ movbu (0xa1c58404),d0
+ btst 128,d0
+ beq 1f
+ jmp grain_constructor_loaded
+1:
+ call grain_native_604c2a4f,[d2,a2,a3],16
+ jmp grain_native_604c2032
+
+.section .grain_select_gate,"ax"
+grain_prepare_gate:
+ movbu (0xa1c58404),d0
+ btst 128,d0
+ beq 1f
+ jmp grain_prepare_loaded
+1:
+ call grain_native_604be99a,[d2,a2],12
+ jmp grain_native_604c20d7
+
+.section .text,"ax"
+grain_constructor_loaded:
+ diagnostic_save
+ call grain_constructor_snapshot,[],4
+ diagnostic_restore
+ call grain_native_604c2a4f,[d2,a2,a3],16
+ jmp grain_native_604c2032
+grain_prepare_loaded:
+ diagnostic_save
+ call grain_prepare_strength,[],4
+ diagnostic_restore
+ call grain_native_604be99a,[d2,a2],12
+ jmp grain_native_604c20d7
+
+.section .text,"ax"
+grain_constructor_snapshot:
+ clr d0
+ mov d0,(14960,a3)
+ mov (4,a3),d0
+ cmp 0x6051fbcc,d0
+ bne grain_constructor_done
+ mov (12192,a3),d0
+ cmp 11,d0
+ bne grain_constructor_done
+ mov (8,a3),a0
+ mov a0,d0
+ sub 0xa1c67cb4,d0
+ cmp 180,d0
+ bcc grain_constructor_done
+ mov 20,d1
+ clr d2
+ mov d2,mdr
+ divu d1,d0
+ mov mdr,d1
+ cmp 0,d1
+ bne grain_constructor_done
+ movbu (12,a0),d0
+ cmp 1,d0
+ bne grain_constructor_done
+ mov (8,a0),d0
+ cmp 1,d0
+ bcs grain_constructor_done
+ cmp 41,d0
+ bcc grain_constructor_done
+ mov d0,d1
+ asl 2,d1
+ add d0,d1
+ asl 2,d1
+ mov 0x618689b8,a0
+ add d1,a0
+ movhu (a0),d1
+ btst 4,d1
+ beq grain_constructor_done
+ call grain_native_60249c22,[],20
+ call hl_owner_row,[],4
+ call tone_hl_row,[],4
+ mov a3,a2
+ add 14920,a2
+ call grain_to_job,[],4
+grain_constructor_done:
+ ret [],4
+
+grain_prepare_strength:
+ mov a0,a3
+ mov (12192,a3),d0
+ cmp 11,d0
+ bne grain_prepare_done
+ mov (14960,a3),d0
+ call grain_decode,[],4
+ movbu d0,(5733,a3)
+grain_prepare_done:
+ ret [],4

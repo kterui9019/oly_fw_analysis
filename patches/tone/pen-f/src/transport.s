@@ -55,12 +55,23 @@ tone_job_gate:
  movbu (0xa1c58404),d0
  btst 128,d0
  bne tone_job_loaded
+ clr d0
  jmp tone_job_unloaded
 tone_job_loaded:
  jmp tone_job_copy
 .section .tone_early,"ax"
 tone_job_unloaded:
- jmp grain_job_unloaded
+ mov d0,(24,a2)
+ mov d0,(28,a2)
+ jmp grain_job_unloaded_tail
+
+.section .grain_job_tail,"ax"
+.global grain_job_unloaded_tail
+grain_job_unloaded_tail:
+ mov d0,(32,a2)
+ mov d0,(36,a2)
+ mov d0,(40,a2)
+ ret [],4
 
 .section .text,"ax"
 .global tone_source_copy, tone_job_copy, tone_clear_hl_row
@@ -158,6 +169,7 @@ tone_clear_hl_row:
 tone_clear_return:
  ret [],4
 
+.global tone_hl_row
 tone_hl_row:
  mov a0,d0
  sub 0xa069b590,d0

@@ -35,6 +35,30 @@ class FilmGrainTests(unittest.TestCase):
     def test_native_capture_order_preserves_strength(self):
         order.native_order_case(self.graph)
 
+    def test_native_order_negative_controls(self):
+        order.negative_controls(self.graph)
+
+    def test_native_order_strength_profile_matrix(self):
+        order.order_matrix(self.graph)
+
+    def test_native_order_all_capture_slots(self):
+        order.slot_cases(self.graph)
+
+    def test_native_order_all_metadata_records(self):
+        order.metadata_cases(self.graph)
+
+    def test_native_order_invalid_contexts(self):
+        order.invalid_cases(self.graph)
+
+    def test_compact_and_invalid_owner_copy_after_capture_tag(self):
+        order.copy_guard_cases(self.graph)
+
+    def test_constructor_snapshots_survive_owner_reuse(self):
+        order.owner_reuse_case(self.graph)
+
+    def test_constructor_prepare_neutral_abi(self):
+        order.neutral_abi_cases(self.graph)
+
     def test_unmapped_late_code_and_reuse_are_neutral(self):
         grain.unavailable_cases(self.graph)
 

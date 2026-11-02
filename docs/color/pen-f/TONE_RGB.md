@@ -172,7 +172,7 @@ copies362496 bytes from logical41483000. The extra4096 bytes are stock FF and
 remain4608 bytes below the next known library source at6115da00. The tone source is the first48 bytes of the60-byte tone/grain source
 at60427c30, inside already loaded section2; the section2 initializer count is
 zero and native execution leaves it untouched. The dispatch gate occupies
-601cafc0..601cafe0 in section1, which already contains the application startup.
+601cafe0..601cb000 in section1, which already contains the application startup.
 Every new slot has an exact FF preimage assertion. Linkers bound all final
 sections, and missing-section tests remove the entire new section8 extent.
 

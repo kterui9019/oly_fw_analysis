@@ -70,7 +70,7 @@ def build_editor(folder, candidate):
              'tone_resident': (0x60c87670,0x60c877e2),
              'tone_pair_ids': (0x60c877e2,0x60c877f0),
              'tone_page': (0x60427fd8,0x60427fe8),
-             'tone_dispatch_gate': (0x601cafc0,GRAIN_DIAGNOSTIC),
+             'tone_dispatch_gate': (0x601cafe0,0x601cb000),
              'tone_manager_gate': (0x60a4ff8d,0x60a4ffa6),
              'tone_manager_unavailable': (0x6081b8af,0x6081b8cf),
              'tone_manager_unavailable_extra': (names['grain_resident_end'],0x6069b800)}
