@@ -6,6 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'tools'))
 import penf_grain_candidate_probe as grain
 import penf_grain_diagnostic_probe as diagnostic
+import penf_grain_order_probe as order
 from penf_tone_graph_candidate import build_graph
 
 
@@ -30,6 +31,9 @@ class FilmGrainTests(unittest.TestCase):
 
     def test_capture_to_job_and_native_requests_keep_acquired_grain(self):
         grain.joined_capture_case(self.graph)
+
+    def test_native_capture_order_preserves_strength(self):
+        order.native_order_case(self.graph)
 
     def test_unmapped_late_code_and_reuse_are_neutral(self):
         grain.unavailable_cases(self.graph)
