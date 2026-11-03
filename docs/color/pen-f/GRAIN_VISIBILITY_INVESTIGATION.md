@@ -79,4 +79,9 @@ against later owner reacquisition. The footer prefix changes to `R` so a camera
 trial can identify this build. The native recording regression covers all four
 levels and three profiles without replacing selection dimension or service
 results. Capture state, allocation, logging, and physical buffer lookup remain
-fixture inputs or models. A physical JPEG result remains unverified.
+fixture inputs or models. A physical JPEG result was still unverified at that point.
+
+The user subsequently confirmed that grain appeared with the recording fix
+package `bd6211e6bbfcbb3abaaa299389b6053d8a945d2a55013fd157377043b68510d8`.
+This confirms visible grain on the camera for the reported trial. Separate
+physical comparisons of all strengths and profiles have not been reported.
