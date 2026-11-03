@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'tools'))
 import penf_grain_candidate_probe as grain
 import penf_grain_diagnostic_probe as diagnostic
 import penf_grain_order_probe as order
+import penf_grain_recording_probe as recording
 from penf_tone_graph_candidate import build_graph
 
 
@@ -40,6 +41,15 @@ class FilmGrainTests(unittest.TestCase):
 
     def test_native_order_strength_profile_matrix(self):
         order.order_matrix(self.graph)
+
+    def test_native_recording_selection_and_conversion_keep_captured_strength(self):
+        recording.recording_matrix(self.graph)
+
+    def test_native_recording_constructor_rejects_invalid_contexts(self):
+        recording.invalid_cases(self.graph)
+
+    def test_native_recording_keeps_mono_and_other_mode_jobs(self):
+        recording.other_mode_cases(self.graph)
 
     def test_native_order_all_capture_slots(self):
         order.slot_cases(self.graph)
