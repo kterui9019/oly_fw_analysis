@@ -113,6 +113,8 @@ tone_paint_after_native:
  mov a2,a0
  call tone_display_active,[d2,d3,a2,a3],20
  beq tone_paint_done
+ cmp 12,d1
+ beq tone_paint_done
  mov d0,d2
  mov d1,(36,sp)
  mov (20,sp),a0

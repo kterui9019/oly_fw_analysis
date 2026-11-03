@@ -208,7 +208,7 @@ def page_cases(candidate, editor):
             s.regs = dict(PRESERVED, pc=0x60c87670, sp=INITIAL_SP, d0=0, d1=0,
                           a0=0, a1=0, a3=0, psw=0)
             report = stopped(s, s.run({0x60c879c8}, limit=10000), 0x60c879c8)
-            newpage = (page + 1) % 3
+            newpage = page + 1 if page < 2 else 12
             assert struct.unpack('<H', s.read(ACTUATOR + 194, 2))[0] == newpage
             high = 967 + 3 * (profile - 1)
             assert u32(s, ACTUATOR + 164) == (high + 1 if newpage == 1 else high + 2)

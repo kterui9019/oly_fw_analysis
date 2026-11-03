@@ -3,7 +3,7 @@
 tone_publish:
  movm [d2,a2,a3],(sp)
  add -4,sp
- mov 12,d2
+ mov 15,d2
  mov tone_source_uncached,a2
  mov tone_storage_ids,a3
 tone_publish_loop:
@@ -32,6 +32,9 @@ tone_stock_builder:
 .balign 4
 tone_source:
  .zero 48
+.global grain_source
+grain_source:
+ .zero 12
 
 .section .tone_source_gate,"ax"
 .global tone_source_gate
@@ -52,15 +55,22 @@ tone_job_gate:
  movbu (0xa1c58404),d0
  btst 128,d0
  bne tone_job_loaded
+ clr d0
  jmp tone_job_unloaded
 tone_job_loaded:
  jmp tone_job_copy
 .section .tone_early,"ax"
 tone_job_unloaded:
- clr d0
- .irp offset,24,28,32,36
- mov d0,(\offset,a2)
- .endr
+ mov d0,(24,a2)
+ mov d0,(28,a2)
+ jmp grain_job_unloaded_tail
+
+.section .grain_job_tail,"ax"
+.global grain_job_unloaded_tail
+grain_job_unloaded_tail:
+ mov d0,(32,a2)
+ mov d0,(36,a2)
+ mov d0,(40,a2)
  ret [],4
 
 .section .text,"ax"
@@ -81,6 +91,7 @@ tone_source_compact:
  movbu (381,a0),d0
 tone_source_profile:
  add -1,d0
+ call grain_acquire,[],4
  cmp 3,d0
  bcc tone_source_neutral
  asl 4,d0
@@ -131,6 +142,7 @@ tone_copy_return:
 tone_job_copy:
  add -12,a0
  call tone_hl_row,[],4
+ call grain_to_job,[],4
  cmp 0,a0
  beq tone_job_zero
  .irp offset,0,4,8,12
@@ -140,13 +152,14 @@ tone_job_copy:
  ret [],4
 tone_job_zero:
  clr d0
- .irp offset,24,28,32,36
+ .irp offset,24,28,32,36,40
  mov d0,(\offset,a2)
  .endr
  ret [],4
 
 tone_clear_hl_row:
  call tone_hl_row,[],4
+ call grain_clear,[],4
  cmp 0,a0
  beq tone_clear_return
  clr d0
@@ -156,6 +169,7 @@ tone_clear_hl_row:
 tone_clear_return:
  ret [],4
 
+.global tone_hl_row
 tone_hl_row:
  mov a0,d0
  sub 0xa069b590,d0
@@ -186,4 +200,4 @@ tone_rows:
 .balign 2
 .global tone_storage_ids
 tone_storage_ids:
- .short 967,968,969,919,970,971,972,920,973,974,975,921
+ .short 967,968,969,919,970,971,972,920,973,974,975,921,985,986,987

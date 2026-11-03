@@ -1,4 +1,4 @@
-# PEN-F ALL/R/G/B five-point tone candidate
+# PEN-F RGB tone and COLOR grain candidate
 
 COLOR1–3 each have independent ALL, R, G and B curves with five vertically adjustable points at **0%,25%,50%,75%,100%**.
 Black, shadow, middle, highlight and white form one nondecreasing piecewise
@@ -20,9 +20,15 @@ still require camera qualification.
 ## Body controls
 
 Open the native COLOR1, COLOR2 or COLOR3 tone editor. INFO cycles
-shadow/highlight → middle → black/white → shadow/highlight.
-Trash cycles ALL → R → G → B while retaining the page. Held OK resets that
+shadow/highlight → middle → black/white → Grain → ALL shadow/highlight.
+Trash cycles ALL → R → G → B while retaining the tone page. Held OK resets that
 page of the selected channel. The footer and graph follow the selected channel.
+
+INFO after black/white opens a shared Grain page. Both dials and the arrows
+change Off/Low/Medium/High, held OK resets Off, and Delete leaves grain unchanged.
+INFO from Grain returns to ALL shadow/highlight. Each COLOR profile saves its
+own strength. See [COLOR grain](../../../docs/color/pen-f/COLOR_GRAIN.md) for
+state, image ownership, native verification, and physical-test limits.
 
 | Page | Left/right | Down/up | Front dial | Rear dial | Held OK |
 |---|---|---|---|---|---|
@@ -97,14 +103,16 @@ its stock restore container. Producing these files performs no device access.
 |---|---|
 | Required full stock | `77398610b379f80238117f31a6d5bbf65d608b49ec563666c64d84367e969f2c` |
 | Pinned HSL package | `4f9a36e6742728ded3d9b443915355f1d1eea0371e1da673f322de970994f717` |
-| RGB five-point + gentler shading main | `16697506a560b5f6208f6935a17f9a9cafa438178f538bdf1d059c6d1891b3d7` |
-| RGB five-point + gentler shading container,44433408 bytes | `db9b9ef3637a4bc7e931ac0f9f527e33bcb0a8cfa6125ca6b230e5c85503db90` |
+| Historical pre-diagnostic COLOR grain + HSL Delete fix main | `b415cea09c5eb88a09a70736c7c65d82c6c01bc7497881375a95d9dce685edf3` |
+| Historical pre-diagnostic COLOR grain + HSL Delete fix container, 44433408 bytes | `31ed97a1e9643f29f8f3ae4cfb58631e889236be9d3a82f127710b090f9908ae` |
 | Retained HSL OSD | `f713df2a2d7d57a511e55cabb0f84ac4d612f99c58df4502a89b32bd8580084c` |
 
-The candidate main and container hashes for each build are recorded in `build.json`.
-The earlier tone-only main hash was
-`eab1448dd516303168aa30455a1a1a10f3124a9fd739668846e80cc0f59af4ed`;
-restoring the five stock shading words reproduces that main exactly.
+The current build is a temporary diagnostic. Its main and container hashes are
+recorded in its `build.json`. The historical pre-diagnostic build changed four
+decoded firmware bytes from the first COLOR grain candidate to fix HSL Delete
+dispatch. The report that COLOR grain is invisible in saved JPEG remains
+unresolved; see [the investigation](../../../docs/color/pen-f/GRAIN_VISIBILITY_INVESTIGATION.md)
+and [the diagnostic procedure](../../../docs/color/pen-f/GRAIN_DIAGNOSTIC.md).
 
 ## Verification and limits
 
@@ -128,8 +136,8 @@ its ABI return. The old HSL target fails at viewer offset 120 in the same fixtur
 `tone_cycle` uses the viewer's first virtual method, matching the native
 controller convention. The audit is under `generated/rgb-tone-del-viewer-fix/audit`.
 It retains the failing test, test-only patch, focused logs and exact build hashes.
-The new candidate is `generated/rgb-tone-del-viewer-fix/install/DCOLYMP/E1229999.BIN`.
-The previous candidate remains in its original output directory.
+That earlier candidate is `generated/rgb-tone-del-viewer-fix/install/DCOLYMP/E1229999.BIN`.
+It predates COLOR grain and the HSL Delete fallback fix.
 
 The fixture models exact allocator returns, camera context properties, status,
 logs, timer and GUI notification services. The helper executes its native
@@ -182,6 +190,14 @@ Twelve constructor scenarios cover three COLOR profiles, zero and sentinel heap
 contents, and inactive or natively activated timeouts. Each runs all four channel
 transitions. Property, status, parameter and timer services have explicit models;
 viewer and draw completion remain modeled. Hardware behavior is unverified.
+
+The HSL Delete regression runs the common native dispatcher with all 13 HSL
+children, three COLOR profiles, each axis, and both loaded and unloaded tone
+sections. It checks that the fallback receives the original event pointer and
+stack position, then executes through the axis change to the native viewer
+entry. The viewer call and physical display are outside this fixture. Separate
+dispatch checks cover RGB channel cycling and consuming Delete on Grain without
+changing its selection or settings.
 
 The RGB native probes cover all36 profile/channel/page states, explicit async
 requests, held reset, guarded trash dispatch, equal-neutral redraw, all45

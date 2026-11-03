@@ -65,15 +65,18 @@ def setup(candidate, *, reference=False, loaded=True, processing=False, raw=(0, 
         s = prepare(identity_lut(), raw, record=record, **processing_options)
     else:
         s = ProbeState(CALLER + 7, 0, 0, bytes(16), {})
-        s.ram('job', JOB - 32, GUARD + b'\xa7' * 14960 + GUARD, aliases=False)
+        s.ram('job', JOB - 32, GUARD + b'\xa7' * 14964 + GUARD, aliases=False)
     image = candidate.reference if reference else candidate.image
     s.regions = [replace(r, data=image) if r.name == 'main' else r for r in s.regions]
+    if 'grain_diagnostic' in candidate.symbols:
+        s.ram('grain_diagnostic', candidate.symbols['grain_diagnostic'], bytes(5))
     s.ram('loaded_sections', 0x61c58404, struct.pack('<I', 0x84 if loaded else 4))
     s.ram('hl_source', candidate.symbols['hl_profile_source'], HL_PACKED)
-    s.ram('tone_source', candidate.symbols['tone_source'], source_bytes(SOURCE_WORDS))
+    s.ram('tone_source', candidate.symbols['tone_source'], source_bytes(SOURCE_WORDS) + bytes(12))
     s.ram('hl_rows', HL_ROWS, bytes(540))
     if loaded:
         s.ram('tone_rows', candidate.symbols['tone_rows'], b'\xc7' * 720)
+        s.ram('grain_rows', candidate.symbols['grain_rows'], bytes(180))
     else:
         s.regions = without_ranges(s.regions, [(0x6115b014, 0x6115c800)])
     s.write(INITIAL_SP - 0x1000, GUARD)
@@ -191,7 +194,7 @@ def owner_matrix(candidate):
         assert s.read(candidate.symbols['tone_rows'], 720) == before
         call(s, candidate.symbols['hl_owner_to_job'], a0=address, a2=JOB + 14920)
         assert u32(s, JOB + 14944) == 0
-    _check_guards(s, JOB, 14960)
+    _check_guards(s, JOB, 14964)
     return dict(owners=reports, neutral_profiles=6, rejected_owners=8)
 
 
@@ -228,7 +231,7 @@ def hooks(candidate):
         assert old[1] == new[1]
         assert old[0].regs == new[0].regs
         assert old[0].read(JOB, 14944) == new[0].read(JOB, 14944)
-        _check_guards(new[0], JOB, 14960)
+        _check_guards(new[0], JOB, 14964)
         reports.append(dict(route=route, native_registers_equal=True, **report))
     return reports
 
@@ -276,14 +279,14 @@ def raw_acquisition(candidate):
 def constructor(candidate):
     s = setup(candidate)
     report = block(s, 0x604c1c0a, 0x604c1c12)
-    assert s.regs['d0'] == 14960
+    assert s.regs['d0'] == 14964
     helpers(s)
     zero = block(s, 0x604c1d19, 0x604c1d28, a3=JOB)
     assert s.read(JOB, 14908) == b'\xa7' * 14908
-    assert s.read(JOB + 14908, 52) == bytes(52)
-    _check_guards(s, JOB, 14960)
-    return dict(allocation_request=14960, allocation_prefix=report,
-                zero_start=14908, zero_bytes=52, native_zero=zero,
+    assert s.read(JOB + 14908, 56) == bytes(56)
+    _check_guards(s, JOB, 14964)
+    return dict(allocation_request=14964, allocation_prefix=report,
+                zero_start=14908, zero_bytes=56, native_zero=zero,
                 limitation='full constructor unavailable without saved boot/heap checkpoint; allocator not modeled')
 
 
@@ -316,7 +319,7 @@ def pipeline(candidate, *, loaded=True, raw=(0, 0, 4, -2, -3), record=0, route='
     else:
         assert output == stock.read(OUTPUT, 5212)
     assert s.regs['d0'] == stock.regs['d0']
-    _check_guards(s, JOB, 14960)
+    _check_guards(s, JOB, 14964)
     _check_guards(s, OUTPUT, 5212)
     assert s.read(LUT, 512) == struct.pack('<256H', *identity_lut())
     uploaded = upload_result(dict(state=s, lut=actual), record % 2)
