@@ -13,7 +13,7 @@ Delete is consumed on the Grain page and does not change a tone channel.
 Pressing INFO from Grain returns to ALL shadow/highlight.
 
 The footer shows `Grain Off`, `Grain Low`, `Grain Medium`, or `Grain High`,
-followed by the native INFO icon. The Grain page does not draw a tone curve.
+followed by the temporary `R` diagnostic code and the native INFO icon. The Grain page does not draw a tone curve.
 The other pages retain their ALL/R/G/B curves and Delete channel switching.
 
 ## Stored and acquired state
@@ -35,8 +35,10 @@ Publication reads the twelve existing tone words and three grain words through
 the same committed HSL publication lifecycle. The source occupies 60 bytes at
 `60427c30`. The first 48 bytes retain their existing tone layout. Each of the
 40 large and five compact image owners has a separate acquired grain word.
-For the capture callback, constructor metadata identifies the acquired owner.
-The constructor copies its grain word to job offset 14960 before selecting
+For the preview callback `6051fbcc`, constructor metadata identifies the acquired owner.
+For the recording callback `605335e3`, job offset 8 points to a descriptor whose
+offset 124 holds the owner. Both routes validate that owner and require COLOR
+mode 11. The constructor copies its grain word to job offset 14960 before selecting
 and initializing the native job list. Allocation is 14964 bytes, and the final
 native clear covers 56 bytes from offset 14908. Conversion hooks also copy the
 word for their existing paths. A valid capture job keeps its constructor
@@ -100,7 +102,18 @@ request builders, combiner configuration, and both MMIO upload banks.
 grain, changes the UI, registers metadata,
 selects the constructor list, executes the conversion window that overwrites
 the grain byte, prepares the job, and submits the already-selected list.
-The full converter and camera capture are not exercised by that fixture.
+The full converter and camera capture are not exercised by that preview fixture.
+`tools/penf_grain_recording_probe.py` executes the native recording header
+producer `60531e16`, the constructor through native list selection, and recording
+converter `60531fdb` up to preparation. Off selects ordinary COLOR development.
+Low, Medium, and High select the native mask, grain image, and late shading
+entries before conversion. The matrix covers all three profiles, later profile
+edits, and owner reacquisition after construction. The converter must retain
+the captured grain, including tagged Off. MONO and another picture mode keep
+the same job bytes as the unhooked native constructor. Selection uses native
+dimension and service paths. Heap allocation, logging, physical buffer lookup,
+and the capture inputs are explicit models. The strength helper is checked
+separately after the converter reaches preparation.
 Compact conversion retains its existing copy behavior, but its constructor
 producer has not been shown to select COLOR grain early. The native common image
 builder verifies that nonneutral HSL, ALL, and RGB edits leave the mask
@@ -119,6 +132,7 @@ Run the reproducible probe with the pinned decoded firmware and MN103 tools.
 
 ```sh
 PYTHONPATH=tools python3 tools/penf_grain_candidate_probe.py --out generated/grain-check
+PYTHONPATH=tools python3 tools/penf_grain_recording_probe.py generated/grain-recording-check
 python3 -m unittest discover -s tests -p 'test_penf_grain_candidate.py' -v
 ```
 

@@ -364,7 +364,7 @@ def viewer_cases(graph):
         viewer.guards()
         payload = s.read(0x619b5f80, 92)
         label = payload[18:].decode('utf-16le').split('\0')[0]
-        assert label == f'Grain {labels[level]} D00000 @A028@', label
+        assert label == f'Grain {labels[level]} R00000 @A028@', label
         assert payload[5] == 1
         press(viewer)
         assert struct.unpack('<H', s.read(ACTUATOR+194, 2))[0] == 12

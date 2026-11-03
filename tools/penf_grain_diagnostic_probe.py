@@ -136,7 +136,7 @@ def footers(graph):
             call(s, graph.symbols['tone_footer'], 0, 0, a0=output)
             payload = s.read(output, 92)
             label = payload[18:].decode('utf-16le').split('\0')[0]
-            assert label == f"Grain {('Off', 'Low', 'Medium', 'High')[level]} D{''.join(map(str, bits))} @A028@", label
+            assert label == f"Grain {('Off', 'Low', 'Medium', 'High')[level]} R{''.join(map(str, bits))} @A028@", label
             assert payload[3] == int(level != 0) and payload[5] == 1
             assert struct.unpack_from('<H', payload, 10)[0] == 5
             assert s.read(output-16, 16) == b'\xa5'*16

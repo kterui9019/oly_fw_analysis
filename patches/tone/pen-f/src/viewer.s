@@ -319,7 +319,7 @@ grain_footer_level_copy:
 grain_footer_info:
  mov 32,d0
  movhu d0,(a2)
- mov 68,d0
+ mov 82,d0
  movhu d0,(2,a2)
  add 4,a2
  mov grain_diagnostic_uncached,a0

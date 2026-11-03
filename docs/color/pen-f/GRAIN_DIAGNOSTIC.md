@@ -2,11 +2,13 @@
 
 This temporary build records whether five existing CPU paths observed the High grain setting. The first two observations concern acquisition and copying to a job; the last three also require COLOR mode. It does not change the grain algorithm or establish that grain appears in a JPEG. The five digits are independent facts accumulated during the resident-load session. They need not describe the same photograph.
 
+The `R` prefix identifies the recording-constructor fix. Earlier diagnostic builds use `D`. The five observations have the same meaning in both builds.
+
 ## Run a camera trial
 
 1. Install the temporary diagnostic build using the existing manual update procedure.
 2. Fully power cycle the camera. Select a COLOR profile and set Grain to High.
-3. Open Grain and record the five digits after `D` in the footer. For example, `Grain High D00000 @A028@` displays five zeros.
+3. Open Grain and record the five digits after `R` in the footer. For example, `Grain High R00000 @A028@` displays five zeros.
 4. Leave the editor, take one JPEG, and wait for capture to finish.
 5. Open Grain again and record the five digits. Report both codes, the COLOR profile, whether the camera completed capture normally, and whether the JPEG shows grain.
 6. For another trial, fully power cycle first. Keep the profile and Grain setting unchanged during each trial.
@@ -23,7 +25,9 @@ The digits are ordered as follows.
 4. A COLOR High stage `0x900` mask request reached the existing enqueue hook.
 5. The combiner accepted a COLOR High kind-0 request at stage `0x901` or `0x902`.
 
-A digit changes from zero to one when its observation occurs and remains one until the resident section is reloaded. Repeated observations leave it at one. For example, `D11110` records the first four observations but not the fifth. `D11111` records all five observations, but does not prove that they belonged to the same capture or that the image hardware completed processing or added visible grain. The fifth digit records CPU admission. It does not verify seed access, nonzero gain, hardware upload, a usable mask, or final pixels. An observer can see a mixture of older and newer facts while capture is active.
+A digit changes from zero to one when its observation occurs and remains one until the resident section is reloaded. Repeated observations leave it at one. For example, `R11110` records the first four observations but not the fifth. `R11111` records all five observations, but does not prove that they belonged to the same capture or that the image hardware completed processing or added visible grain. The fifth digit records CPU admission. It does not verify seed access, nonzero gain, hardware upload, a usable mask, or final pixels. An observer can see a mixture of older and newer facts while capture is active.
+
+All five observations require High. Selecting Low or Medium alone cannot set either of the first two digits. A previous or background High acquisition or copy can set them, including a different profile. A displayed Low setting with `R11000` therefore does not prove that Low was the acquired value or that those observations came from the next photograph.
 
 ## Reproduce offline checks
 

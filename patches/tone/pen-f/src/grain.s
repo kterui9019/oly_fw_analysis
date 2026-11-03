@@ -164,7 +164,10 @@ grain_to_job:
  add -14920,a1
  mov (4,a1),d0
  cmp 0x6051fbcc,d0
+ beq grain_job_capture
+ cmp 0x605335e3,d0
  bne grain_job_copy
+grain_job_capture:
  mov (12192,a1),d0
  cmp 11,d0
  bne grain_job_copy
@@ -313,11 +316,13 @@ grain_prepare_loaded:
 grain_constructor_snapshot:
  clr d0
  mov d0,(14960,a3)
- mov (4,a3),d0
- cmp 0x6051fbcc,d0
- bne grain_constructor_done
  mov (12192,a3),d0
  cmp 11,d0
+ bne grain_constructor_done
+ mov (4,a3),d0
+ cmp 0x605335e3,d0
+ beq grain_constructor_recording
+ cmp 0x6051fbcc,d0
  bne grain_constructor_done
  mov (8,a3),a0
  mov a0,d0
@@ -349,6 +354,13 @@ grain_constructor_snapshot:
  btst 4,d1
  beq grain_constructor_done
  call grain_native_60249c22,[],20
+ bra grain_constructor_owner
+grain_constructor_recording:
+ mov (8,a3),a0
+ cmp 0,a0
+ beq grain_constructor_done
+ mov (124,a0),a0
+grain_constructor_owner:
  call hl_owner_row,[],4
  call tone_hl_row,[],4
  mov a3,a2

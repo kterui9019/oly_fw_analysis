@@ -59,3 +59,24 @@ configuration were equal, with gain 600. Actual camera requests, processing,
 and JPEG pixels remain unknown. No strength, mode, or flag change is justified
 by these observations. The temporary [diagnostic](GRAIN_DIAGNOSTIC.md) observes
 the existing algorithm without changing it.
+
+## Recording constructor mismatch
+
+The user subsequently reported `D00000` after power-on and `D11000` after
+selecting Low or higher on COLOR2. COLOR1 gave the same result, and saved JPEGs
+still showed no grain. These sticky High-only observations cannot establish
+which profile or capture supplied the first two digits.
+
+Native recording header producer `60531e16` supplies callback `605335e3` and
+a descriptor context. The previous constructor snapshot accepted only preview
+callback `6051fbcc`. In the bounded recording reproduction, acquired High
+therefore became a zero constructor trailer and an ordinary COLOR list.
+The actual recording converter `60531fdb` copied High only after selection.
+
+The recording fix reads the capture owner from descriptor offset 124 before
+selection. It retains the existing owner validation and freezes the job word
+against later owner reacquisition. The footer prefix changes to `R` so a camera
+trial can identify this build. The native recording regression covers all four
+levels and three profiles without replacing selection dimension or service
+results. Capture state, allocation, logging, and physical buffer lookup remain
+fixture inputs or models. A physical JPEG result remains unverified.
